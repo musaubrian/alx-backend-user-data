@@ -5,7 +5,12 @@ module obfuscates log msgs
 
 from typing import List
 import re
+import os
 import logging
+import mysql.connector
+
+
+PII_FIELDS = ("name", "email", "password", "ssn", "phone")
 
 
 class RedactingFormatter(logging.Formatter):
@@ -22,8 +27,7 @@ class RedactingFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """filter values in incoming log records using filter_datum"""
         msg = logging.Formatter(self.FORMAT).format(record)
-        result = filter_datum(self.fields, self.REDACTION, msg,
-                              self.SEPARATOR)
+        result = filter_datum(self.fields, self.REDACTION, msg, self.SEPARATOR)
 
         return result
 
@@ -47,3 +51,64 @@ def filter_datum(
         message = re.sub(expression, redaction, message)
 
     return message
+
+
+def get_logger() -> logging.Logger:
+    """
+    returns a logging.Logger object.
+    """
+    log = logging.getLogger("user_data")
+    log.setLevel(logging.INFO)
+    log.propagate = False
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(RedactingFormatter(PII_FIELDS))
+    log.addHandler(stream_handler)
+
+    return log
+
+
+def get_db() -> mysql.connector.connection.MySQLConnection:
+    """
+    returns a connector to the database
+    """
+    db_connection = mysql.connector.connection(
+        user=os.getenv("PERSONAL_DATA_DB_USERNAME", "root"),
+        password=os.getenv("PERSONAL_DATA_DB_PASSWORD", ""),
+        host=os.getenv("PERSONAL_DATA_DB_HOST", "localhost"),
+        database=os.getenv("PERSONAL_DATA_DB_NAME"),
+    )
+
+    return db_connection
+
+
+def main() -> None:
+    """
+    retrieve all rows in the users table
+    and display each row under a filtered format
+    """
+
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SLEECT * FROM users;")
+
+    fields = []
+    result = []
+
+    for field in cursor.description:
+        fields.append(field[0] + "=")
+
+    log = get_logger()
+
+    for row in cursor:
+        for i in range(len(fields)):
+            result.append(fields[i] + str(row[i]) + ";")
+        log.info(" ".join(result))
+        result = []
+
+    cursor.close()
+    db.close()
+
+
+if __name__ == "__main__":
+    main()
