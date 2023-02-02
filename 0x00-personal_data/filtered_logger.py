@@ -27,8 +27,7 @@ class RedactingFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """filter values in incoming log records using filter_datum"""
         msg = logging.Formatter(self.FORMAT).format(record)
-        result = filter_datum(self.fields, self.REDACTION, msg,
-                              self.SEPARATOR)
+        result = filter_datum(self.fields, self.REDACTION, msg, self.SEPARATOR)
 
         return result
 
@@ -81,3 +80,35 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
     )
 
     return db_connection
+
+
+def main() -> None:
+    """
+    retrieve all rows in the users table
+    and display each row under a filtered format
+    """
+
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SLEECT * FROM users;")
+
+    fields = []
+    result = []
+
+    for field in cursor.description:
+        fields.append(field[0] + "=")
+
+    log = get_logger()
+
+    for row in cursor:
+        for i in range(len(fields)):
+            result.append(fields[i] + str(row[i]) + ";")
+        log.info(" ".join(result))
+        result = []
+
+    cursor.close()
+    db.close()
+
+
+if __name__ == "__main__":
+    main()
