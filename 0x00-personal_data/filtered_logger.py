@@ -90,7 +90,7 @@ def main() -> None:
 
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SLEECT * FROM users;")
+    cursor.execute("SELECT * FROM users;")
 
     fields = []
     result = []
