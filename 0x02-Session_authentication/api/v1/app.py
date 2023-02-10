@@ -26,6 +26,7 @@ elif os.getenv("AUTH_TYPE") == "session_auth":
 
     auth = SessionAuth()
 
+
 @app.errorhandler(404)
 def not_found(error) -> str:
     """Not found erro handler"""
@@ -53,10 +54,7 @@ def before_request():
     """
     Filter requests
     """
-    exclude_list = [
-            "/api/v1/status/",
-            "/api/v1/unauthorized/",
-            "/api/v1/forbidden/"]
+    exclude_list = ["/api/v1/status/", "/api/v1/unauthorized/", "/api/v1/forbidden/"]
 
     if auth is not None:
         if auth.require_auth(
