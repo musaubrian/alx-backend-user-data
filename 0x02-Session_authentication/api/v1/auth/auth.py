@@ -2,7 +2,7 @@
 """
 API authentication module
 """
-
+import os
 from flask import request
 from typing import List, TypeVar
 
@@ -32,3 +32,12 @@ class Auth:
     def current_user(self, request=None) -> TypeVar("User"):
         """Return None"""
         return None
+
+    def session_cookie(self, request=None):
+        """Returns a cookie value from a request"""
+        if request is None:
+            return None
+
+        _my_session_id = os.getenv("SESSION_NAME")
+        res = request.cookies.get(_my_session_id)
+        return res
