@@ -2,6 +2,9 @@
 """
 Route module for the API
 """
+from api.v1.auth.auth import Auth
+from api.v1.auth.basic_auth import BasicAuth
+from api.v1.auth.session_auth import SessionAuth
 from os import getenv
 from api.v1.views import app_views
 from flask import Flask, jsonify, abort, request
@@ -12,31 +15,38 @@ app = Flask(__name__)
 app.register_blueprint(app_views)
 CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 auth = None
-if os.getenv("AUTH_TYPE") == "basic_auth":
-    from api.v1.auth.basic_auth import BasicAuth
+if os.getenv("AUTH_TYPE") == "session_db_auth":
+    from api.v1.auth.session_db_auth import SessionDBAuth
 
-    auth = BasicAuth()
+    auth = SessionDBAuth()
+elif os.getenv("AUTH_TYPE") == "session_exp_auth":
+    from api.v1.auth.session_exp_auth import SessionExpAuth
 
-elif os.getenv("AUTH_TYPE") == "auth":
-    from api.v1.auth.auth import Auth
-
-    auth = Auth()
+    auth = SessionExpAuth()
 elif os.getenv("AUTH_TYPE") == "session_auth":
     from api.v1.auth.session_auth import SessionAuth
 
     auth = SessionAuth()
+elif os.getenv("AUTH_TYPE") == "basic_auth":
+    from api.v1.auth.basic_auth import BasicAuth
+
+    auth = BasicAuth()
+elif os.getenv("AUTH_TYPE") == "auth":
+    from api.v1.auth.auth import Auth
+
+    auth = Auth()
 
 
 @app.errorhandler(404)
 def not_found(error) -> str:
-    """Not found erro handler"""
+    """Not found handler"""
     return jsonify({"error": "Not found"}), 404
 
 
 @app.errorhandler(401)
 def unauthorized(error) -> str:
     """
-    Unauthorized error handler.
+    Unauthorized handler.
     """
     return jsonify({"error": "Unauthorized"}), 401
 
@@ -44,27 +54,25 @@ def unauthorized(error) -> str:
 @app.errorhandler(403)
 def forbidden(error) -> str:
     """
-    Forbidden error handler
+    Forbidden handler
     """
     return jsonify({"error": "Forbidden"}), 403
 
 
 @app.before_request
-def before_request():
+def before_request() -> str:
     """
-    Filter requests
+    Now the biggest piece is the filtering of each request.
+    For that you will use the Flask method before_request
     """
-    exclude_list = [
+    excluded_list = [
         "/api/v1/status/",
         "/api/v1/unauthorized/",
-        "/api/v1/forbidden/" "/api/v1/auth_session/login/",
+        "/api/v1/forbidden/",
+        "/api/v1/auth_session/login/",
     ]
-
     if auth is not None:
-        if auth.require_auth(
-            request.path,
-            exclude_list,
-        ):
+        if auth.require_auth(request.path, excluded_list):
             if auth.authorization_header(request) is None:
                 if auth.session_cookie(request) is None:
                     abort(401)
@@ -72,7 +80,7 @@ def before_request():
             if auth.current_user(request) is None:
                 abort(403)
 
-        request.current_user = auth.current_user(request)
+            request.current_user = auth.current_user(request)
 
 
 if __name__ == "__main__":
