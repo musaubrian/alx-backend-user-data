@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-defines an SQLAlchemy model
+defines an SQLAlchemy user model
 """
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
@@ -9,7 +9,7 @@ Base = declarative_base()
 
 
 class User(Base):
-    """defines a SQLAlchemy model for users"""
+    """defines a SQLAlchemy model for user"""
 
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
