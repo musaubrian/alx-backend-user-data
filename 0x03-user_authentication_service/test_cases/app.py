@@ -14,14 +14,14 @@ def status():
 
 
 @app.route("/users", methods=["POST"], strict_slashes=False)
-def register_user() -> str:
+def register_user():
     """ """
     email = request.form.get("email")
     pwd = request.form.get("password")
 
     try:
-        new_user = AUTH.register_user(email, pwd)
-        if not new_user:
+        new_user = AUTH.register_user(email=email, password=pwd)
+        if new_user is not None:
             msg = {"email": new_user.email, "message": "user created"}
             return jsonify(msg)
 

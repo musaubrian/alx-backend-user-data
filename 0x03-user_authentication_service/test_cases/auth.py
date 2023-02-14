@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Module deals with authentication"""
-from db import DB, NoResultFound
+from db import DB
+from sqlalchemy.orm.exc import NoResultFound
 from bcrypt import gensalt, hashpw
 
 
@@ -23,6 +24,6 @@ class Auth:
             self._db.find_user_by(email=email)
             raise ValueError(f"User {email} already exists")
         except NoResultFound:
-            hashed_pwd = _hash_password(password)
-            new_user = self._db.add_user(email, str(hashed_pwd))
+            hashed_pwd = _hash_password(password).decode("utf-8")
+            new_user = self._db.add_user(email, hashed_pwd)
             return new_user
