@@ -31,14 +31,14 @@ class DB:
 
     def add_user(self, email: str, hashed_password: str) -> User:
         """Add user to the db"""
-        new_user = User(email, hashed_password)
+        new_user = User(email=email, hashed_password=hashed_password)
         self._session.add(new_user)
         self._session.commit()
         return new_user
 
     def find_user_by(self, **kwargs) -> User:
         """
-        return row us users from KWARGS
+        return rows of users from KWARGS
         """
         try:
             records = self._session.query(User).filter_by(**kwargs).first()
