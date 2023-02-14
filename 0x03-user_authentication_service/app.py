@@ -20,8 +20,8 @@ def register_user() -> str:
     pwd = request.form.get("password")
 
     try:
-        new_user = AUTH.register_user(email, pwd)
-        if not new_user:
+        new_user = AUTH.register_user(email=email, password=pwd)
+        if new_user is not None:
             msg = {"email": new_user.email, "message": "user created"}
             return jsonify(msg)
 
@@ -30,5 +30,4 @@ def register_user() -> str:
 
 
 if __name__ == "__main__":
-    port_num = 5000
-    app.run(host="0.0.0.0", port=port_num)
+    app.run(host="0.0.0.0", port="5000")
