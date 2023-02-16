@@ -2,6 +2,7 @@
 """Module deals with authentication"""
 from db import DB, InvalidRequestError, User
 from sqlalchemy.orm.exc import NoResultFound
+import uuid
 from bcrypt import checkpw, gensalt, hashpw
 
 
@@ -10,6 +11,13 @@ def _hash_password(password: str) -> bytes:
     hashed_pwd = hashpw(password.encode("utf-8"), gensalt())
 
     return hashed_pwd
+
+
+def _generate_uuid() -> str:
+    """Returns a string representation of a new UUID"""
+    new_uuid = uuid.uuid4()
+
+    return str(new_uuid)
 
 
 class Auth:
