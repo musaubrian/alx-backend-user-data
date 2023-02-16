@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Module deals with authentication"""
+from typing import Union
 from db import DB, InvalidRequestError, User
 from sqlalchemy.orm.exc import NoResultFound
 import uuid
@@ -48,3 +49,17 @@ class Auth:
             return result
         except (NoResultFound, InvalidRequestError):
             return False
+
+    def create_session(self, email: str) -> Union[str, None]:
+        """
+        generates a new UUID, stores it in the db as the user’s session_id,
+        then return the session ID.
+        """
+        try:
+            user = self._db.find_user_by(email=email)
+            session_id = _generate_uuid()
+            self._db.update_user(user.id, session_id=session_id)
+
+            return session_id
+        except (ValueError, NoResultFound):
+            return None

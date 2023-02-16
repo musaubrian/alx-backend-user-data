@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Module deals with authentication"""
+from typing import Union
 from db import DB, InvalidRequestError, User
 from sqlalchemy.orm.exc import NoResultFound
+import uuid
 from bcrypt import checkpw, gensalt, hashpw
 
 
@@ -10,6 +12,13 @@ def _hash_password(password: str) -> bytes:
     hashed_pwd = hashpw(password.encode("utf-8"), gensalt())
 
     return hashed_pwd
+
+
+def _generate_uuid() -> str:
+    """Returns a string representation of a new UUID"""
+    new_uuid = uuid.uuid4()
+
+    return str(new_uuid)
 
 
 class Auth:
@@ -41,3 +50,16 @@ class Auth:
         except (NoResultFound, InvalidRequestError):
             return False
 
+    def create_session(self, email: str) -> Union[str, None]:
+        """
+        generates a new UUID, stores it in the db as the user’s session_id,
+        then return the session ID.
+        """
+        try:
+            user = self._db.find_user_by(email=email)
+            session_id = _generate_uuid()
+            self._db.update_user(user.id, session_id=session_id)
+
+            return session_id
+        except (ValueError, NoResultFound):
+            return None
