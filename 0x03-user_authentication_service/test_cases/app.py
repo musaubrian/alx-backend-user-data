@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Simple flas app"""
 from flask import Flask, jsonify, request
 from auth import Auth
 
@@ -14,7 +15,7 @@ def status():
 
 
 @app.route("/users", methods=["POST"], strict_slashes=False)
-def register_user():
+def register_user() -> str:
     """ """
     email = request.form.get("email")
     pwd = request.form.get("password")
@@ -26,9 +27,8 @@ def register_user():
             return jsonify(msg)
 
     except ValueError:
-        return jsonify({"message": "email already registered"})
+        return jsonify({"message": "email already registered"}), 400
 
 
 if __name__ == "__main__":
-    port_num = 5000
-    app.run(host="0.0.0.0", port=port_num)
+    app.run(host="0.0.0.0", port="5000")

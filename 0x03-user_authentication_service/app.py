@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Simple flas app"""
 from flask import Flask, jsonify, request
 from auth import Auth
 
@@ -26,7 +27,7 @@ def register_user() -> str:
             return jsonify(msg)
 
     except ValueError:
-        return jsonify({"message": "email already registered"})
+        return jsonify({"message": "email already registered"}), 400
 
 
 if __name__ == "__main__":
